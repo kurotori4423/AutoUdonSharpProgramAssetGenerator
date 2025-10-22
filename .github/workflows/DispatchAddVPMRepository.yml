@@ -33,4 +33,4 @@ jobs:
           token: ${{ secrets.VPM_REPO_TOKEN }}
           repository: kurotori4423/vpm.kurotori4423 # VPMリポジトリのオーナーとリポジトリ名に置き換えてください
           event-type: add_new_version
-          client-payload: '{"repository": "${{ github.event.repository.full_name }}", "tag": "${{ steps.vars.outputs.tag_name }}", "owner": "${{ github.event.repository.owner.login }}"}'
+          client-payload: '{"repository": "${{ github.event.repository.name }}", "tag": "${{ steps.vars.outputs.tag_name }}", "owner": "${{ github.event.repository.owner.login }}"}'
