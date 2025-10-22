@@ -1,0 +1,17 @@
+{
+  "name": "com.kurotori4423.autoudonsharpprogramassetgenerator",
+  "displayName": "Auto UdonSharp Program Asset Generator",
+  "version": "1.0.0",
+  "unity": "2022.3",
+  "description": "Automatically generates UdonSharpProgramAsset for UdonSharp scripts.",
+  "author": {
+    "name": "kurotori4423",
+    "email": "kurotori4423@gmail.com",
+    "url": "https://github.com/kurotori4423/UdonSharpProgramAssetPostProcessor"
+  },
+  "dependencies": {
+  },
+  "vpmDependencies": {
+    "com.vrchat.worlds": ">=3.6.0"
+  }
+}

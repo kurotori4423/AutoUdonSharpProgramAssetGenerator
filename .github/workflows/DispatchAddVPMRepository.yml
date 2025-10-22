@@ -31,6 +31,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.VPM_REPO_TOKEN }}
-          repository: your-username/repositoryname # VPMリポジトリのオーナーとリポジトリ名に置き換えてください
+          repository: kurotori4423/vpm.kurotori4423 # VPMリポジトリのオーナーとリポジトリ名に置き換えてください
           event-type: add_new_version
           client-payload: '{"repository": "${{ github.event.repository.name }}", "tag": "${{ steps.vars.outputs.tag_name }}", "owner": "${{ github.event.repository.owner.login }}"}'
