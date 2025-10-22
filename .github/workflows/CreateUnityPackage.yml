@@ -1,0 +1,20 @@
+name: "CreateUnityPackage"
+ 
+on:
+  workflow_dispatch:
+ 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: true
+ 
+      - run: |
+          mkdir ./dist
+ 
+      - uses: natsuneko-laboratory/create-unitypackage@main
+        with:
+          package: package.json
+          output: dist/Package.unitypackage
