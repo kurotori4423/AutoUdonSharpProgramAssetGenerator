@@ -13,12 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # リポジトリをチェックアウト
+      # リポジトリをチェックアウト（mainブランチを明示的に指定）
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          ref: main  # mainブランチを明示的にチェックアウト
       
       # タグからバージョン番号を抽出
       - name: Extract version from tag
@@ -84,9 +85,27 @@ jobs:
       - name: Commit and push changes
         if: steps.changes.outputs.has_changes == 'true'
         run: |
+          # 現在のブランチ状態を確認
+          echo "Current branch status:"
+          git status
+          git branch -a
+          
+          # mainブランチにいることを確認し、必要に応じて切り替え
+          CURRENT_BRANCH=$(git branch --show-current)
+          echo "Current branch: $CURRENT_BRANCH"
+          
+          if [ "$CURRENT_BRANCH" != "main" ]; then
+            echo "Not on main branch, switching to main..."
+            git checkout main
+            git pull origin main
+          fi
+          
+          # 変更をコミット
           git add package.json
           git commit -m "Update package.json version to ${{ steps.version.outputs.version }} (from tag ${{ steps.version.outputs.tag_name }})"
-          git push origin HEAD:main
+          
+          # プッシュ
+          git push origin main
       
       # 結果を表示
       - name: Display result
