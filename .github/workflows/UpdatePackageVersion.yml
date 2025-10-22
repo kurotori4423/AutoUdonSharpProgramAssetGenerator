@@ -1,0 +1,105 @@
+name: Update Package Version from Tag
+
+# package.jsonのバージョンを、プッシュされたタグに基づいて更新します。
+# 完了後、Create Relase Draftを実行します。
+
+on:
+  push:
+    tags:
+      - 'v*'  # v1.0.0, v2.1.3などのタグにマッチ
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # リポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      # タグからバージョン番号を抽出
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}  # v接頭辞を削除
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION from tag: $TAG_NAME"
+      
+      # package.jsonの存在確認
+      - name: Check package.json exists
+        run: |
+          if [ ! -f "package.json" ]; then
+            echo "Error: package.json not found"
+            exit 1
+          fi
+      
+      # package.jsonの現在のバージョンを確認
+      - name: Get current version from package.json
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(jq -r '.version' package.json)
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version in package.json: $CURRENT_VERSION"
+          echo "New version from tag: ${{ steps.version.outputs.version }}"
+      
+      # バージョンが異なる場合のみ更新
+      - name: Update package.json version
+        if: steps.current_version.outputs.current_version != steps.version.outputs.version
+        run: |
+          # jqを使ってpackage.jsonのversionフィールドを更新
+          jq --arg version "${{ steps.version.outputs.version }}" '.version = $version' package.json > package.json.tmp
+          mv package.json.tmp package.json
+          
+          echo "Updated package.json version to: ${{ steps.version.outputs.version }}"
+          
+          # 変更内容を確認
+          echo "Updated package.json content:"
+          cat package.json
+      
+      # 変更があるかチェック
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet package.json; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in package.json"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in package.json"
+          fi
+      
+      # Gitの設定
+      - name: Configure Git
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      
+      # 変更をコミットしてプッシュ
+      - name: Commit and push changes
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git add package.json
+          git commit -m "Update package.json version to ${{ steps.version.outputs.version }} (from tag ${{ steps.version.outputs.tag_name }})"
+          git push origin HEAD:main
+      
+      # 結果を表示
+      - name: Display result
+        run: |
+          if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
+            echo "✅ Successfully updated package.json version to ${{ steps.version.outputs.version }}"
+          else
+            echo "ℹ️ package.json version was already up to date (${{ steps.current_version.outputs.current_version }})"
+          fi
+      
+      # package.jsonのバージョンが更新された場合、Create Unity Package Release Draftワークフローを実行
+      - name: Trigger Create Release Draft workflow
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: ./.github/workflows/CreateReleaseDraft.yml
+        with:
+          tag_name: ${{ steps.version.outputs.tag_name }}

@@ -1,0 +1,36 @@
+name: Dispatch-Add-VPM-Repository
+
+# VPMリポジトリ（いくつかのVPMパッケージをまとめて）に新しいバージョンを追加するワークフロー
+
+on:
+    release:
+      types: [published]
+    workflow_dispatch:
+      inputs:
+        tag_name:
+          description: 'Tag name for the package (e.g., v1.0.0)'
+          required: true
+          type: string
+
+jobs:
+  # VPMリポジトリのこのリポジトリの追加を依頼する
+  SendVPMRepository:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set variables
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME="${{ inputs.tag_name }}"
+          else
+            TAG_NAME="${{ github.event.release.tag_name }}"
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.VPM_REPO_TOKEN }}
+          repository: your-username/repositoryname # VPMリポジトリのオーナーとリポジトリ名に置き換えてください
+          event-type: add_new_version
+          client-payload: '{"repository": "${{ github.event.repository.name }}", "tag": "${{ steps.vars.outputs.tag_name }}", "owner": "${{ github.event.repository.owner.login }}"}'
