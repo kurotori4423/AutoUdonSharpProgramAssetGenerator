@@ -100,6 +100,8 @@ jobs:
       # package.jsonのバージョンが更新された場合、Create Unity Package Release Draftワークフローを実行
       - name: Trigger Create Release Draft workflow
         if: steps.changes.outputs.has_changes == 'true'
-        uses: ./.github/workflows/CreateReleaseDraft.yml
+        uses: benc-uk/workflow-dispatch@v1.2.2
         with:
-          tag_name: ${{ steps.version.outputs.tag_name }}
+          workflow: CreateReleaseDraft.yml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          inputs: '{"tag_name": "${{ steps.version.outputs.tag_name }}"}'
