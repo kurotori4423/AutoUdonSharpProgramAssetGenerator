@@ -13,16 +13,10 @@ jobs:
  
       - run: |
           mkdir ./dist
-    
-      - uses: natsuneko-laboratory/get-meta-from-glob@main
-        with:
-          includes: /*.*
-          output: ./MetaList
  
       - uses: natsuneko-laboratory/create-unitypackage@main
         with:
-          meta: ./MetaList
-          output: dist/Test.unitypackage
+          dist: dist/Test.unitypackage
 
       - uses: actions/upload-artifact@v4
         with:
