@@ -100,7 +100,6 @@ jobs:
       - name: Create Unity Package
         uses: pCYSl5EDgo/create-unitypackage@master
         with:
-          project-folder: '${{ github.event.repository.name }}/'
           package-path: 'output/${{ steps.package_info.outputs.package_name }}.unitypackage'
           include-files: metaList
       
