@@ -16,5 +16,5 @@ jobs:
  
       - uses: natsuneko-laboratory/create-unitypackage@main
         with:
-          package: Assets/NatsunekoLaboratory/Package/package.json
-          output: Package.unitypackage
+          package: package.json
+          dest: dist/Package.unitypackage
