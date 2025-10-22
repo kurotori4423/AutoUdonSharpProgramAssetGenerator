@@ -24,7 +24,7 @@ jobs:
           meta: ./MetaList
           output: dist/Test.unitypackage
 
-      - uses: actions/upload-artifact
+      - uses: actions/upload-artifact@v4
         with:
           name: Test.unitypackage
           path: dist/Test.unitypackage
