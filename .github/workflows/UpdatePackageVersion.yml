@@ -97,15 +97,42 @@ jobs:
           if [ "$CURRENT_BRANCH" != "main" ]; then
             echo "Not on main branch, switching to main..."
             git checkout main
-            git pull origin main
+          fi
+          
+          # リモートの最新状態を取得
+          echo "Fetching latest changes from remote..."
+          git fetch origin main
+          
+          # リモートとローカルの差分を確認
+          BEHIND_COUNT=$(git rev-list --count HEAD..origin/main)
+          echo "Commits behind remote: $BEHIND_COUNT"
+          
+          if [ "$BEHIND_COUNT" -gt 0 ]; then
+            echo "Local branch is behind remote, pulling latest changes..."
+            git pull origin main --rebase
           fi
           
           # 変更をコミット
           git add package.json
           git commit -m "Update package.json version to ${{ steps.version.outputs.version }} (from tag ${{ steps.version.outputs.tag_name }})"
           
-          # プッシュ
-          git push origin main
+          # プッシュ（フォースプッシュは使わず、再試行ロジックを追加）
+          for i in {1..3}; do
+            echo "Attempting to push (attempt $i/3)..."
+            if git push origin main; then
+              echo "✅ Successfully pushed changes"
+              break
+            else
+              if [ $i -lt 3 ]; then
+                echo "Push failed, fetching latest and retrying..."
+                git fetch origin main
+                git rebase origin/main
+              else
+                echo "❌ Failed to push after 3 attempts"
+                exit 1
+              fi
+            fi
+          done
       
       # 結果を表示
       - name: Display result
