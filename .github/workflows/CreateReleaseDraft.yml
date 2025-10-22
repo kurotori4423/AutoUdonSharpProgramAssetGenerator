@@ -25,20 +25,34 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # リポジトリをチェックアウト
+      # リポジトリをチェックアウト（最新の変更を確実に取得）
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: main  # 明示的にmainブランチの最新を取得
+      
+      # 最新のコミット情報を確認
+      - name: Verify latest commit
+        run: |
+          LATEST_COMMIT=$(git rev-parse HEAD)
+          echo "Latest commit SHA: $LATEST_COMMIT"
+          echo "Latest commit message: $(git log -1 --pretty=format:'%s')"
+          echo "Latest commit author: $(git log -1 --pretty=format:'%an')"
+          echo "Latest commit date: $(git log -1 --pretty=format:'%cd')"
       
       # package.jsonから情報を取得
       - name: Get package info
         id: package_info
         run: |
+          # package.jsonの存在を確認し、最新の内容を表示
           if [ ! -f "package.json" ]; then
             echo "Error: package.json not found"
             exit 1
           fi
+          
+          echo "Current package.json content:"
+          cat package.json
           
           DISPLAY_NAME=$(jq -r '.displayName // .name' package.json)
           VERSION=$(jq -r '.version' package.json)

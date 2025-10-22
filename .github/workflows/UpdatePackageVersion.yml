@@ -97,6 +97,36 @@ jobs:
             echo "ℹ️ package.json version was already up to date (${{ steps.current_version.outputs.current_version }})"
           fi
       
+      # コミットが確実に反映されるまで待機
+      - name: Wait for commit to be processed
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          echo "Waiting for commit to be processed..."
+          COMMIT_SHA=$(git rev-parse HEAD)
+          echo "Current commit SHA: $COMMIT_SHA"
+          
+          # GitHubのAPIを使ってコミットが反映されるまで待機
+          for i in {1..30}; do
+            echo "Checking commit status (attempt $i/30)..."
+            
+            # GitHub APIを使ってコミットの存在を確認
+            RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/commits/$COMMIT_SHA")
+            
+            # レスポンスにshaフィールドが含まれていればコミットが反映されている
+            if echo "$RESPONSE" | jq -e '.sha' > /dev/null 2>&1; then
+              echo "✅ Commit has been processed by GitHub API"
+              break
+            fi
+            
+            if [ $i -eq 30 ]; then
+              echo "⚠️ Timeout waiting for commit to be processed, continuing anyway..."
+            else
+              echo "Waiting 5 seconds before next check..."
+              sleep 5
+            fi
+          done
+      
       # package.jsonのバージョンが更新された場合、Create Unity Package Release Draftワークフローを実行
       - name: Trigger Create Release Draft workflow
         if: steps.changes.outputs.has_changes == 'true'
