@@ -100,13 +100,14 @@ jobs:
       - name: Create Unity Package
         uses: pCYSl5EDgo/create-unitypackage@master
         with:
+          project-folder: '${{ github.event.repository.name }}/'
           package-path: 'output/${{ steps.package_info.outputs.package_name }}.unitypackage'
           include-files: metaList
       
       # Zipファイルを作成
       - name: Create Zip file
         run: |
-          zip -r "output/${{ steps.package_info.outputs.package_name }}.zip" . -x "package.json" "metaList" "output/*"
+          zip -r "output/${{ steps.package_info.outputs.package_name }}.zip" . -x "metaList" "output/*"
       
       # package.jsonを出力ディレクトリにコピー
       - name: Copy package.json
