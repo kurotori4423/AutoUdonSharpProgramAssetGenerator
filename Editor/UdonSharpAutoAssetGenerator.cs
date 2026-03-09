@@ -72,6 +72,12 @@ namespace Kurotori
                     return;
                 }
 
+                // 抽象クラスにはUdonSharpProgramAssetを生成しない
+                if (scriptType.IsAbstract)
+                {
+                    return;
+                }
+
                 // 既に対応するUdonSharpProgramAssetが存在するかチェック
                 if (HasExistingProgramAsset(monoScript))
                 {
